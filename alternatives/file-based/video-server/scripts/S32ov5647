@@ -1,0 +1,18 @@
+#!/bin/sh
+# Configure the OV5647 camera after the ISP driver has started.
+case "$1" in
+  start)
+    proc=/proc/vsi/isp_subdev0
+    i=0
+    while [ ! -w "$proc" ] && [ "$i" -lt 15 ]; do sleep 1; i=$((i + 1)); done
+    [ -w "$proc" ] || { echo "OV5647: ISP control unavailable" >&2; exit 1; }
+    echo '0 sensor=ov5647' > "$proc" || exit 1
+    echo '0 mode=0' > "$proc" || exit 1
+    echo '0 xml=/etc/vvcam/ov5647-1920x1080.xml' > "$proc" || exit 1
+    echo '0 manu_json=/etc/vvcam/ov5647-1920x1080_manual.json' > "$proc" || exit 1
+    echo '0 auto_json=/etc/vvcam/ov5647-1920x1080_auto.json' > "$proc" || exit 1
+    echo 'OV5647 configured'
+    ;;
+  stop) ;;
+  *) echo "Usage: $0 {start|stop}" >&2; exit 1 ;;
+esac
